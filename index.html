@@ -62,7 +62,9 @@
                                 <option value="Lalu">Lalu</option>
                             </select>
                             <input type="text" class="form-control form-control-sm mb-2" id="kas-ket" placeholder="Keterangan">
-                            <input type="number" class="form-control form-control-sm mb-2" id="kas-nom" placeholder="Nominal (Cth: 50000)">
+                            
+                            <input type="text" class="form-control form-control-sm mb-2" id="kas-nom" placeholder="Nominal (Cth: 50.000)" oninput="formatRibuan(this)">
+                            
                             <select class="form-select form-select-sm mb-2" id="kas-tipe">
                                 <option value="masuk">Pemasukan (+)</option>
                                 <option value="keluar">Pengeluaran (-)</option>
@@ -158,6 +160,12 @@
         // Variabel global agar tidak fetch berkali-kali saat filter bulan diubah
         let dataKasGlobal = [];
 
+        // --- FUNGSI FORMAT RIBUAN OTOMATIS ---
+        function formatRibuan(input) {
+            let angka = input.value.replace(/[^0-9]/g, "");
+            input.value = angka.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
         // --- FETCH KAS & REKAP ---
         async function fetchKasData() {
             try {
@@ -180,11 +188,17 @@
 
             [...dataKasGlobal].reverse().forEach(item => {
                 const isMasuk = item.tipe === 'masuk';
-                const nom = Number(item.nominal);
+                // Bersihkan titik jika ada di database lama, lalu ubah ke angka
+                const nom = Number(String(item.nominal).replace(/\./g, ""));
                 
                 totalSaldo += isMasuk ? nom : -nom;
 
-                if (isMasuk && rekap.hasOwnProperty(item.pembayar) && item.periode === bulanDipilih) {
+                // Logika Filter Diperbarui: 
+                // Jika data lama tidak punya periode (kosong), tetap hitung agar muncul.
+                // Jika punya periode, pastikan cocok dengan dropdown.
+                const periodeCocok = !item.periode || item.periode === bulanDipilih;
+
+                if (isMasuk && rekap.hasOwnProperty(item.pembayar) && periodeCocok) {
                     rekap[item.pembayar] += nom;
                 }
 
@@ -220,15 +234,17 @@
         async function simpanKas() {
             const pembayar = document.getElementById('kas-pembayar').value;
             const ket = document.getElementById('kas-ket').value;
-            const nominal = document.getElementById('kas-nom').value;
+            // Hapus titik ribuan sebelum dikirim ke Google Sheets
+            const nominalStr = document.getElementById('kas-nom').value.replace(/\./g, "");
+            const nominal = Number(nominalStr);
             const tipe = document.getElementById('kas-tipe').value;
             
             const periodeSaatIni = new Date().getFullYear() + "-" + String(new Date().getMonth() + 1).padStart(2, '0');
 
-            if (!ket || !nominal) return alert("Isi keterangan & nominal!");
+            if (!ket || !nominal) return alert("Isi keterangan & nominal dengan angka yang benar!");
             
             const btn = document.getElementById('btn-kas');
-            btn.disabled = true; btn.innerText = "⏳";
+            btn.disabled = true; btn.innerText = "⏳ Menyimpan...";
 
             await fetch(`${SCRIPT_URL}?sheet=Kas`, {
                 method: 'POST', mode: 'no-cors',
@@ -236,8 +252,15 @@
                 body: JSON.stringify({ pembayar, ket, nominal, tipe, periode: periodeSaatIni })
             });
 
-            document.getElementById('kas-ket').value = ''; document.getElementById('kas-nom').value = '';
-            setTimeout(() => { btn.disabled = false; btn.innerText = "Simpan Transaksi"; fetchKasData(); }, 1500);
+            document.getElementById('kas-ket').value = ''; 
+            document.getElementById('kas-nom').value = '';
+            
+            // Tunggu sebentar agar Google Sheets selesai memproses, lalu ambil data terbaru
+            setTimeout(() => { 
+                btn.disabled = false; 
+                btn.innerText = "Simpan Transaksi"; 
+                fetchKasData(); 
+            }, 1500);
         }
 
         // --- FETCH JADWAL ---
