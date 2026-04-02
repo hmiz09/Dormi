@@ -62,9 +62,7 @@
                                 <option value="Lalu">Lalu</option>
                             </select>
                             <input type="text" class="form-control form-control-sm mb-2" id="kas-ket" placeholder="Keterangan">
-                            
                             <input type="text" class="form-control form-control-sm mb-2" id="kas-nom" placeholder="Nominal (Cth: 50.000)" oninput="formatRibuan(this)">
-                            
                             <select class="form-select form-select-sm mb-2" id="kas-tipe">
                                 <option value="masuk">Pemasukan (+)</option>
                                 <option value="keluar">Pengeluaran (-)</option>
@@ -146,27 +144,23 @@
 
     <script>
         // =====================================================================
-        // MASUKKAN URL GOOGLE SCRIPT ANDA DI BAWAH INI (TETAP GUNAKAN KUTIP)
+        // MASUKKAN URL GOOGLE SCRIPT ANDA DI BAWAH INI
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzTtAVH_BwmtLYsBgJrdJKDeYKa3fuyK1D6-zhONnXB4EWQprQxjkv2NSgWINV2LDh/exec";
         // =====================================================================
 
         const daftarAnggota = ["Haris", "Hisyam", "Erza", "Krisna", "Wahyu", "Bryan", "Riza", "Tohom", "Chadifa", "Imam", "Nobrian", "Abidzar", "Baretha", "Yudha", "Lalu"];
 
-        // Set default bulan di input filter (Format YYYY-MM)
         const dateNow = new Date();
         const currentMonthString = dateNow.getFullYear() + "-" + String(dateNow.getMonth() + 1).padStart(2, '0');
         document.getElementById('filter-bulan').value = currentMonthString;
 
-        // Variabel global agar tidak fetch berkali-kali saat filter bulan diubah
         let dataKasGlobal = [];
 
-        // --- FUNGSI FORMAT RIBUAN OTOMATIS ---
         function formatRibuan(input) {
             let angka = input.value.replace(/[^0-9]/g, "");
             input.value = angka.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
 
-        // --- FETCH KAS & REKAP ---
         async function fetchKasData() {
             try {
                 const res = await fetch(`${SCRIPT_URL}?sheet=Kas`);
@@ -188,15 +182,20 @@
 
             [...dataKasGlobal].reverse().forEach(item => {
                 const isMasuk = item.tipe === 'masuk';
-                // Bersihkan titik jika ada di database lama, lalu ubah ke angka
                 const nom = Number(String(item.nominal).replace(/\./g, ""));
                 
                 totalSaldo += isMasuk ? nom : -nom;
 
-                // Logika Filter Diperbarui: 
-                // Jika data lama tidak punya periode (kosong), tetap hitung agar muncul.
-                // Jika punya periode, pastikan cocok dengan dropdown.
-                const periodeCocok = !item.periode || item.periode === bulanDipilih;
+                // --- PERBAIKAN FORMAT WAKTU GOOGLE SHEETS ---
+                let periodeBersih = item.periode;
+                // Jika google sheets mengirim format aneh "2026-03-31T..."
+                if (periodeBersih && String(periodeBersih).includes('T')) {
+                    const tgl = new Date(periodeBersih);
+                    periodeBersih = tgl.getFullYear() + "-" + String(tgl.getMonth() + 1).padStart(2, '0');
+                }
+
+                // Cocokkan periode yang sudah dibersihkan dengan dropdown
+                const periodeCocok = !periodeBersih || periodeBersih === bulanDipilih;
 
                 if (isMasuk && rekap.hasOwnProperty(item.pembayar) && periodeCocok) {
                     rekap[item.pembayar] += nom;
@@ -207,7 +206,7 @@
                         <div>
                             <span class="member-badge">${item.pembayar}</span>
                             <div class="fw-bold small mt-1">${item.ket}</div>
-                            <div style="font-size: 0.6rem; color: #888;">${item.periode || 'Bulan lama'}</div>
+                            <div style="font-size: 0.6rem; color: #888;">Periode: ${periodeBersih || 'Bulan lama'}</div>
                         </div>
                         <div class="${isMasuk ? 'text-success' : 'text-danger'} small fw-bold">
                             ${isMasuk ? '+' : '-'} Rp ${nom.toLocaleString('id-ID')}
@@ -234,14 +233,13 @@
         async function simpanKas() {
             const pembayar = document.getElementById('kas-pembayar').value;
             const ket = document.getElementById('kas-ket').value;
-            // Hapus titik ribuan sebelum dikirim ke Google Sheets
             const nominalStr = document.getElementById('kas-nom').value.replace(/\./g, "");
             const nominal = Number(nominalStr);
             const tipe = document.getElementById('kas-tipe').value;
             
             const periodeSaatIni = new Date().getFullYear() + "-" + String(new Date().getMonth() + 1).padStart(2, '0');
 
-            if (!ket || !nominal) return alert("Isi keterangan & nominal dengan angka yang benar!");
+            if (!ket || !nominal) return alert("Isi keterangan & nominal dengan benar!");
             
             const btn = document.getElementById('btn-kas');
             btn.disabled = true; btn.innerText = "⏳ Menyimpan...";
@@ -252,15 +250,8 @@
                 body: JSON.stringify({ pembayar, ket, nominal, tipe, periode: periodeSaatIni })
             });
 
-            document.getElementById('kas-ket').value = ''; 
-            document.getElementById('kas-nom').value = '';
-            
-            // Tunggu sebentar agar Google Sheets selesai memproses, lalu ambil data terbaru
-            setTimeout(() => { 
-                btn.disabled = false; 
-                btn.innerText = "Simpan Transaksi"; 
-                fetchKasData(); 
-            }, 1500);
+            document.getElementById('kas-ket').value = ''; document.getElementById('kas-nom').value = '';
+            setTimeout(() => { btn.disabled = false; btn.innerText = "Simpan Transaksi"; fetchKasData(); }, 1500);
         }
 
         // --- FETCH JADWAL ---
