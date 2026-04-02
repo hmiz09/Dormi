@@ -15,6 +15,9 @@
         .loading { text-align: center; color: #6c757d; font-style: italic; margin-top: 20px; }
         .member-badge { font-size: 0.7rem; padding: 3px 6px; border-radius: 8px; background: #e2e8f0; color: #333; }
         .btn-aksi { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; }
+        
+        /* Modifikasi Dropdown Checklist */
+        .dropdown-menu.checklist-area { max-height: 200px; overflow-y: auto; font-size: 0.85rem; }
     </style>
 </head>
 <body>
@@ -49,24 +52,14 @@
                             <label class="small fw-bold text-muted mb-1">Tanggal Transaksi</label>
                             <input type="date" class="form-control form-control-sm mb-2" id="kas-tgl">
                             
-                            <select class="form-select form-select-sm mb-2" id="kas-pembayar">
-                                <option value="Umum">Pilih Nama / Umum</option>
-                                <option value="Haris">Haris</option>
-                                <option value="Hisyam">Hisyam</option>
-                                <option value="Erza">Erza</option>
-                                <option value="Krisna">Krisna</option>
-                                <option value="Wahyu">Wahyu</option>
-                                <option value="Bryan">Bryan</option>
-                                <option value="Riza">Riza</option>
-                                <option value="Tohom">Tohom</option>
-                                <option value="Chadifa">Chadifa</option>
-                                <option value="Imam">Imam</option>
-                                <option value="Nobrian">Nobrian</option>
-                                <option value="Abidzar">Abidzar</option>
-                                <option value="Baretha">Baretha</option>
-                                <option value="Yudha">Yudha</option>
-                                <option value="Lalu">Lalu</option>
-                            </select>
+                            <div class="dropdown mb-2">
+                                <button class="btn btn-outline-secondary btn-sm w-100 text-start d-flex justify-content-between align-items-center" type="button" id="btn-dropdown-pembayar" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                    <span>Pilih Nama Pembayar</span>
+                                    <span style="font-size: 0.7rem;">▼</span>
+                                </button>
+                                <ul class="dropdown-menu w-100 p-2 checklist-area shadow" id="list-pembayar">
+                                    </ul>
+                            </div>
                             
                             <input type="text" class="form-control form-control-sm mb-2" id="kas-ket" placeholder="Keterangan (Cth: Beli Galon)">
                             <input type="text" class="form-control form-control-sm mb-2" id="kas-nom" placeholder="Nominal (Cth: 50.000)" oninput="formatRibuan(this)">
@@ -154,21 +147,63 @@
 
     <script>
         // =====================================================================
+        // MASUKKAN URL GOOGLE SCRIPT ANDA DI BAWAH INI
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzTtAVH_BwmtLYsBgJrdJKDeYKa3fuyK1D6-zhONnXB4EWQprQxjkv2NSgWINV2LDh/exec";
         // =====================================================================
 
         const daftarAnggota = ["Haris", "Hisyam", "Erza", "Krisna", "Wahyu", "Bryan", "Riza", "Tohom", "Chadifa", "Imam", "Nobrian", "Abidzar", "Baretha", "Yudha", "Lalu"];
-        
         let dataKasGlobal = [];
 
-        // Atur Tanggal Hari Ini Sebagai Default
+        // Atur Tanggal & Bulan Default
         const dateNow = new Date();
         const strTanggalHariIni = dateNow.getFullYear() + "-" + String(dateNow.getMonth() + 1).padStart(2, '0') + "-" + String(dateNow.getDate()).padStart(2, '0');
         document.getElementById('kas-tgl').value = strTanggalHariIni;
-        
-        // Atur Bulan Hari Ini Sebagai Default Filter
         const currentMonthString = dateNow.getFullYear() + "-" + String(dateNow.getMonth() + 1).padStart(2, '0');
         document.getElementById('filter-bulan').value = currentMonthString;
+
+        // Render Checkbox Nama
+        function renderCheckboxNama() {
+            const list = document.getElementById('list-pembayar');
+            let html = `
+                <li>
+                    <div class="form-check">
+                        <input class="form-check-input check-nama" type="checkbox" value="Umum" id="chk-Umum" onchange="updateDropdownText()">
+                        <label class="form-check-label w-100" for="chk-Umum">Umum / Lainnya</label>
+                    </div>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+            `;
+            daftarAnggota.forEach(nama => {
+                html += `
+                <li>
+                    <div class="form-check">
+                        <input class="form-check-input check-nama" type="checkbox" value="${nama}" id="chk-${nama}" onchange="updateDropdownText()">
+                        <label class="form-check-label w-100" for="chk-${nama}">${nama}</label>
+                    </div>
+                </li>`;
+            });
+            list.innerHTML = html;
+        }
+
+        function updateDropdownText() {
+            const checked = document.querySelectorAll('.check-nama:checked');
+            const btn = document.getElementById('btn-dropdown-pembayar');
+            if(checked.length === 0) btn.innerHTML = '<span>Pilih Nama Pembayar</span><span style="font-size: 0.7rem;">▼</span>';
+            else if(checked.length === 1) btn.innerHTML = `<span class="fw-bold text-primary">${checked[0].value}</span><span style="font-size: 0.7rem;">▼</span>`;
+            else btn.innerHTML = `<span class="fw-bold text-primary">${checked.length} Orang Terpilih</span><span style="font-size: 0.7rem;">▼</span>`;
+        }
+
+        // Ambil nama-nama yang dicentang
+        function getNamaTerpilih() {
+            const checked = document.querySelectorAll('.check-nama:checked');
+            return Array.from(checked).map(cb => cb.value);
+        }
+
+        // Uncheck semua nama
+        function resetCheckboxNama() {
+            document.querySelectorAll('.check-nama').forEach(cb => cb.checked = false);
+            updateDropdownText();
+        }
 
         function formatRibuan(input) {
             let angka = input.value.replace(/[^0-9]/g, "");
@@ -194,27 +229,23 @@
             daftarAnggota.forEach(nama => rekap[nama] = 0);
 
             [...dataKasGlobal].reverse().forEach(item => {
-                if(!item.id) return; // Abaikan baris kosong di Google Sheets
+                if(!item.id) return; 
 
                 const isMasuk = item.tipe === 'masuk';
                 const nom = Number(String(item.nominal).replace(/\./g, ""));
                 totalSaldo += isMasuk ? nom : -nom;
 
-                // --- INI KODE YANG KEMARIN HILANG (PERBAIKAN FORMAT WAKTU) ---
                 let periodeBersih = item.periode;
                 if (periodeBersih && String(periodeBersih).includes('T')) {
                     const d = new Date(periodeBersih);
                     periodeBersih = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0');
                 }
 
-                // Cocokkan periode dengan dropdown
                 const periodeCocok = !periodeBersih || String(periodeBersih).startsWith(bulanDipilih);
-                
                 if (isMasuk && rekap.hasOwnProperty(item.pembayar) && periodeCocok) {
                     rekap[item.pembayar] += nom;
                 }
 
-                // Format Tanggal untuk Tampilan
                 let tglRapi = item.tanggal;
                 if(tglRapi && String(tglRapi).includes('T')) {
                     const d = new Date(tglRapi);
@@ -250,18 +281,23 @@
             document.getElementById('tabel-status').innerHTML = tabelHtml;
         }
 
-        // --- FUNGSI EDIT DAN HAPUS KAS ---
+        // --- FUNGSI EDIT KAS ---
         function siapkanEdit(id) {
             const item = dataKasGlobal.find(x => String(x.id) === String(id));
             if(!item) return;
 
             document.getElementById('kas-id').value = item.id;
-            document.getElementById('kas-pembayar').value = item.pembayar;
+            
+            // Pilih nama di checkbox
+            resetCheckboxNama();
+            const chk = document.getElementById(`chk-${item.pembayar}`);
+            if(chk) chk.checked = true;
+            updateDropdownText();
+
             document.getElementById('kas-ket').value = item.ket;
             document.getElementById('kas-nom').value = Number(String(item.nominal).replace(/\./g, "")).toLocaleString('id-ID').replace(/,/g, ".");
             document.getElementById('kas-tipe').value = item.tipe;
             
-            // Format ulang tanggal untuk input HTML
             if(item.tanggal && String(item.tanggal).includes('T')) {
                 const d = new Date(item.tanggal);
                 document.getElementById('kas-tgl').value = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
@@ -276,6 +312,7 @@
 
         function batalEdit() {
             document.getElementById('kas-id').value = '';
+            resetCheckboxNama();
             document.getElementById('kas-ket').value = '';
             document.getElementById('kas-nom').value = '';
             document.getElementById('kas-tgl').value = strTanggalHariIni;
@@ -286,22 +323,20 @@
 
         async function hapusKas(id) {
             if(!confirm("Yakin ingin menghapus transaksi ini?")) return;
-            
             document.getElementById('list-kas').innerHTML = '<div class="loading">Menghapus...</div>';
-            
             await fetch(`${SCRIPT_URL}?sheet=Kas`, {
                 method: 'POST', mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'delete', id: id })
             });
-            
             setTimeout(fetchKasData, 1500);
         }
 
+        // --- SIMPAN KAS MASSAL (BATCH) ---
         async function simpanKas() {
             const idTersembunyi = document.getElementById('kas-id').value;
             const tanggalPilih = document.getElementById('kas-tgl').value;
-            const pembayar = document.getElementById('kas-pembayar').value;
+            const daftarPembayar = getNamaTerpilih();
             const ket = document.getElementById('kas-ket').value;
             const nominalStr = document.getElementById('kas-nom').value.replace(/\./g, "");
             const nominal = Number(nominalStr);
@@ -309,34 +344,48 @@
             
             const periodeHitung = tanggalPilih.substring(0, 7);
 
-            if (!ket || !nominal || !tanggalPilih) return alert("Mohon lengkapi Tanggal, Keterangan & Nominal!");
+            if (daftarPembayar.length === 0) return alert("Pilih minimal 1 nama pembayar!");
+            if (!ket || !nominal || !tanggalPilih) return alert("Lengkapi Tanggal, Keterangan & Nominal!");
             
+            // Cegah Edit Massal (Edit hanya boleh 1 nama)
+            if (idTersembunyi && daftarPembayar.length > 1) {
+                return alert("Anda sedang dalam Mode Edit. Hanya boleh memilih 1 nama untuk diedit.");
+            }
+
             const btn = document.getElementById('btn-kas');
-            btn.disabled = true; btn.innerText = "⏳ Menyimpan...";
+            btn.disabled = true; 
 
-            const aksi = idTersembunyi ? 'edit' : 'insert';
-            const idKirim = idTersembunyi || Date.now().toString();
+            // Kirim data satu per satu ke Google Sheets berdasarkan nama yang dicentang
+            let count = 0;
+            for (const pembayar of daftarPembayar) {
+                count++;
+                btn.innerText = `⏳ Menyimpan (${count}/${daftarPembayar.length})...`;
+                
+                const aksi = idTersembunyi ? 'edit' : 'insert';
+                const idKirim = idTersembunyi || (Date.now().toString() + Math.floor(Math.random() * 1000)); // ID Unik
 
-            await fetch(`${SCRIPT_URL}?sheet=Kas`, {
-                method: 'POST', mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    action: aksi, 
-                    id: idKirim, 
-                    pembayar: pembayar, 
-                    ket: ket, 
-                    nominal: nominal, 
-                    tipe: tipe, 
-                    periode: periodeHitung, 
-                    tanggal: tanggalPilih 
-                })
-            });
+                await fetch(`${SCRIPT_URL}?sheet=Kas`, {
+                    method: 'POST', mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: aksi, 
+                        id: idKirim, 
+                        pembayar: pembayar, 
+                        ket: ket, 
+                        nominal: nominal, 
+                        tipe: tipe, 
+                        periode: periodeHitung, 
+                        tanggal: tanggalPilih 
+                    })
+                });
+            }
 
             batalEdit();
-            setTimeout(() => { btn.disabled = false; fetchKasData(); }, 1500);
+            btn.disabled = false;
+            fetchKasData();
         }
 
-        // --- FETCH JADWAL ---
+        // --- FETCH JADWAL & CHAT ---
         async function loadJadwal() {
             try {
                 const res = await fetch(`${SCRIPT_URL}?sheet=Jadwal`);
@@ -358,7 +407,6 @@
             setTimeout(loadJadwal, 1500);
         }
 
-        // --- FETCH CHAT ---
         async function loadChat() {
             try {
                 const res = await fetch(`${SCRIPT_URL}?sheet=Chat`);
@@ -378,8 +426,12 @@
             setTimeout(loadChat, 1500);
         }
 
+        // --- INISIALISASI AWAL ---
         window.onload = () => { 
-            fetchKasData(); loadJadwal(); loadChat(); 
+            renderCheckboxNama();
+            fetchKasData(); 
+            loadJadwal(); 
+            loadChat(); 
             setInterval(() => { fetchKasData(); loadJadwal(); loadChat(); }, 10000);
         };
     </script>
