@@ -44,7 +44,9 @@
                         </div>
 
                         <div class="mt-auto bg-light p-2 border rounded">
-                            <input type="hidden" id="kas-id"> <label class="small fw-bold text-muted mb-1">Tanggal Transaksi</label>
+                            <input type="hidden" id="kas-id">
+                            
+                            <label class="small fw-bold text-muted mb-1">Tanggal Transaksi</label>
                             <input type="date" class="form-control form-control-sm mb-2" id="kas-tgl">
                             
                             <select class="form-select form-select-sm mb-2" id="kas-pembayar">
@@ -159,12 +161,12 @@
         
         let dataKasGlobal = [];
 
-        // Atur Tanggal Hari Ini Sebagai Default di Form Input Kas
+        // Atur Tanggal Hari Ini Sebagai Default
         const dateNow = new Date();
         const strTanggalHariIni = dateNow.getFullYear() + "-" + String(dateNow.getMonth() + 1).padStart(2, '0') + "-" + String(dateNow.getDate()).padStart(2, '0');
         document.getElementById('kas-tgl').value = strTanggalHariIni;
         
-        // Atur Bulan Hari Ini Sebagai Default di Filter Rekap
+        // Atur Bulan Hari Ini Sebagai Default Filter
         const currentMonthString = dateNow.getFullYear() + "-" + String(dateNow.getMonth() + 1).padStart(2, '0');
         document.getElementById('filter-bulan').value = currentMonthString;
 
@@ -192,20 +194,27 @@
             daftarAnggota.forEach(nama => rekap[nama] = 0);
 
             [...dataKasGlobal].reverse().forEach(item => {
-                // Abaikan baris kosong jika ada
-                if(!item.id) return; 
+                if(!item.id) return; // Abaikan baris kosong di Google Sheets
 
                 const isMasuk = item.tipe === 'masuk';
                 const nom = Number(String(item.nominal).replace(/\./g, ""));
-                
                 totalSaldo += isMasuk ? nom : -nom;
 
-                const periodeCocok = !item.periode || String(item.periode).startsWith(bulanDipilih);
+                // --- INI KODE YANG KEMARIN HILANG (PERBAIKAN FORMAT WAKTU) ---
+                let periodeBersih = item.periode;
+                if (periodeBersih && String(periodeBersih).includes('T')) {
+                    const d = new Date(periodeBersih);
+                    periodeBersih = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0');
+                }
+
+                // Cocokkan periode dengan dropdown
+                const periodeCocok = !periodeBersih || String(periodeBersih).startsWith(bulanDipilih);
+                
                 if (isMasuk && rekap.hasOwnProperty(item.pembayar) && periodeCocok) {
                     rekap[item.pembayar] += nom;
                 }
 
-                // Coba bersihkan format tanggal dari Google Sheets agar rapi (DD/MM/YYYY)
+                // Format Tanggal untuk Tampilan
                 let tglRapi = item.tanggal;
                 if(tglRapi && String(tglRapi).includes('T')) {
                     const d = new Date(tglRapi);
@@ -283,7 +292,7 @@
             await fetch(`${SCRIPT_URL}?sheet=Kas`, {
                 method: 'POST', mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'delete', id: id }) // Kirim perintah delete
+                body: JSON.stringify({ action: 'delete', id: id })
             });
             
             setTimeout(fetchKasData, 1500);
@@ -291,14 +300,13 @@
 
         async function simpanKas() {
             const idTersembunyi = document.getElementById('kas-id').value;
-            const tanggalPilih = document.getElementById('kas-tgl').value; // Ambil dari form tanggal
+            const tanggalPilih = document.getElementById('kas-tgl').value;
             const pembayar = document.getElementById('kas-pembayar').value;
             const ket = document.getElementById('kas-ket').value;
             const nominalStr = document.getElementById('kas-nom').value.replace(/\./g, "");
             const nominal = Number(nominalStr);
             const tipe = document.getElementById('kas-tipe').value;
             
-            // Generate Periode (YYYY-MM) langsung dari input tanggal yang dipilih
             const periodeHitung = tanggalPilih.substring(0, 7);
 
             if (!ket || !nominal || !tanggalPilih) return alert("Mohon lengkapi Tanggal, Keterangan & Nominal!");
@@ -306,9 +314,8 @@
             const btn = document.getElementById('btn-kas');
             btn.disabled = true; btn.innerText = "⏳ Menyimpan...";
 
-            // Jika ada ID tersembunyi berarti Edit, jika tidak ada berarti Insert baru
             const aksi = idTersembunyi ? 'edit' : 'insert';
-            const idKirim = idTersembunyi || Date.now().toString(); // Buat ID unik baru dari waktu (timestamp) jika Insert
+            const idKirim = idTersembunyi || Date.now().toString();
 
             await fetch(`${SCRIPT_URL}?sheet=Kas`, {
                 method: 'POST', mode: 'no-cors',
@@ -325,7 +332,7 @@
                 })
             });
 
-            batalEdit(); // Reset form
+            batalEdit();
             setTimeout(() => { btn.disabled = false; fetchKasData(); }, 1500);
         }
 
