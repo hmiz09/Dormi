@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Asrama Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .scroll-area { height: 300px; overflow-y: auto; background-color: #ffffff; border: 1px solid #dee2e6; padding: 10px; border-radius: 0.375rem; margin-bottom: 15px; }
+        .scroll-area::-webkit-scrollbar { width: 6px; }
+        .scroll-area::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+        .chat-bubble { background: #e9ecef; border-radius: 15px; padding: 8px 12px; margin-bottom: 8px; width: fit-content; max-width: 85%; font-size: 0.9rem; }
+        .chat-me { background: #0d6efd; color: white; margin-left: auto; }
+        .loading { text-align: center; color: #6c757d; font-style: italic; margin-top: 20px; }
+        .member-badge { font-size: 0.7rem; padding: 3px 6px; border-radius: 8px; background: #e2e8f0; color: #333; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark bg-primary mb-4 shadow-sm">
+        <div class="container justify-content-center">
+            <span class="navbar-brand mb-0 h1">🏠 Asrama Kita</span>
+        </div>
+    </nav>
+
+    <div class="container mb-5">
+        <div class="row g-4">
+            
+            <div class="col-12 col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">💰 Kas</h5>
+                        <button class="btn btn-light btn-sm text-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalRekap">Rekap</button>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div class="alert alert-success text-center fw-bold fs-5 mb-2 py-2">
+                            Total Saldo: Rp <span id="saldo-angka">0</span>
+                        </div>
+                        
+                        <div class="scroll-area flex-grow-1" id="list-kas">
+                            <div class="loading">Memuat data kas...</div>
+                        </div>
+
+                        <div class="mt-auto">
+                            <select class="form-select form-select-sm mb-2" id="kas-pembayar">
+                                <option value="Umum">Pilih Nama / Umum</option>
+                                <option value="Haris">Haris</option>
+                                <option value="Hisyam">Hisyam</option>
+                                <option value="Erza">Erza</option>
+                                <option value="Krisna">Krisna</option>
+                                <option value="Wahyu">Wahyu</option>
+                                <option value="Bryan">Bryan</option>
+                                <option value="Riza">Riza</option>
+                                <option value="Tohom">Tohom</option>
+                                <option value="Chadifa">Chadifa</option>
+                                <option value="Imam">Imam</option>
+                                <option value="Nobrian">Nobrian</option>
+                                <option value="Abidzar">Abidzar</option>
+                                <option value="Baretha">Baretha</option>
+                                <option value="Yudha">Yudha</option>
+                                <option value="Lalu">Lalu</option>
+                            </select>
+                            <input type="text" class="form-control form-control-sm mb-2" id="kas-ket" placeholder="Keterangan">
+                            <input type="number" class="form-control form-control-sm mb-2" id="kas-nom" placeholder="Nominal (Cth: 50000)">
+                            <select class="form-select form-select-sm mb-2" id="kas-tipe">
+                                <option value="masuk">Pemasukan (+)</option>
+                                <option value="keluar">Pengeluaran (-)</option>
+                            </select>
+                            <button class="btn btn-success btn-sm w-100 fw-bold" id="btn-kas" onclick="simpanKas()">Simpan Transaksi</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="card-title mb-0 text-center">📅 Jadwal & Tugas</h5>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div class="scroll-area flex-grow-1" id="list-jadwal">
+                            <div class="loading">Memuat data jadwal...</div>
+                        </div>
+                        <div class="mt-auto">
+                            <input type="text" class="form-control form-control-sm mb-2" id="jadwal-tugas" placeholder="Tugas">
+                            <input type="text" class="form-control form-control-sm mb-2" id="jadwal-pic" placeholder="Nama Petugas">
+                            <input type="date" class="form-control form-control-sm mb-2" id="jadwal-tgl">
+                            <button class="btn btn-warning btn-sm w-100 fw-bold" id="btn-jadwal" onclick="tambahJadwal()">Tambah Jadwal</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0 text-center">💬 Obrolan</h5>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div class="scroll-area flex-grow-1" id="list-chat">
+                            <div class="loading">Memuat data chat...</div>
+                        </div>
+                        <div class="mt-auto input-group">
+                            <input type="text" class="form-control form-control-sm" id="chat-input" placeholder="Tulis pesan..." onkeypress="if(event.key==='Enter') kirimPesan()">
+                            <button class="btn btn-info btn-sm text-white fw-bold" id="btn-chat" onclick="kirimPesan()">Kirim</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalRekap" tabindex="-1" aria-labelledby="modalRekapLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="modalRekapLabel">📊 Rekap Iuran Anggota</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3 d-flex align-items-center gap-2 bg-light p-2 rounded border">
+                        <label class="fw-bold small mb-0 w-100">Pilih Periode:</label>
+                        <input type="month" class="form-control form-control-sm" id="filter-bulan" onchange="loadKas()">
+                    </div>
+
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nama Anggota</th>
+                                <th class="text-end">Status Bulan Ini</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabel-status">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // =====================================================================
+        // MASUKKAN URL GOOGLE SCRIPT ANDA DI BAWAH INI (TETAP GUNAKAN KUTIP)
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzTtAVH_BwmtLYsBgJrdJKDeYKa3fuyK1D6-zhONnXB4EWQprQxjkv2NSgWINV2LDh/exec";
+        // =====================================================================
+
+        const daftarAnggota = ["Haris", "Hisyam", "Erza", "Krisna", "Wahyu", "Bryan", "Riza", "Tohom", "Chadifa", "Imam", "Nobrian", "Abidzar", "Baretha", "Yudha", "Lalu"];
+
+        // Set default bulan di input filter (Format YYYY-MM)
+        const dateNow = new Date();
+        const currentMonthString = dateNow.getFullYear() + "-" + String(dateNow.getMonth() + 1).padStart(2, '0');
+        document.getElementById('filter-bulan').value = currentMonthString;
+
+        // Variabel global agar tidak fetch berkali-kali saat filter bulan diubah
+        let dataKasGlobal = [];
+
+        // --- FETCH KAS & REKAP ---
+        async function fetchKasData() {
+            try {
+                const res = await fetch(`${SCRIPT_URL}?sheet=Kas`);
+                dataKasGlobal = await res.json();
+                loadKas(); 
+            } catch(e) {
+                document.getElementById('list-kas').innerHTML = '<div class="text-danger small text-center">Gagal memuat kas.</div>';
+            }
+        }
+
+        function loadKas() {
+            let totalSaldo = 0;
+            let logHtml = '';
+            let rekap = {};
+            
+            const bulanDipilih = document.getElementById('filter-bulan').value;
+
+            daftarAnggota.forEach(nama => rekap[nama] = 0);
+
+            [...dataKasGlobal].reverse().forEach(item => {
+                const isMasuk = item.tipe === 'masuk';
+                const nom = Number(item.nominal);
+                
+                totalSaldo += isMasuk ? nom : -nom;
+
+                if (isMasuk && rekap.hasOwnProperty(item.pembayar) && item.periode === bulanDipilih) {
+                    rekap[item.pembayar] += nom;
+                }
+
+                logHtml += `
+                    <div class="p-2 mb-2 border rounded bg-light d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="member-badge">${item.pembayar}</span>
+                            <div class="fw-bold small mt-1">${item.ket}</div>
+                            <div style="font-size: 0.6rem; color: #888;">${item.periode || 'Bulan lama'}</div>
+                        </div>
+                        <div class="${isMasuk ? 'text-success' : 'text-danger'} small fw-bold">
+                            ${isMasuk ? '+' : '-'} Rp ${nom.toLocaleString('id-ID')}
+                        </div>
+                    </div>`;
+            });
+
+            document.getElementById('list-kas').innerHTML = logHtml || '<div class="loading">Belum ada transaksi</div>';
+            document.getElementById('saldo-angka').innerText = totalSaldo.toLocaleString('id-ID');
+
+            let tabelHtml = '';
+            daftarAnggota.forEach(nama => {
+                const totalBayar = rekap[nama];
+                const warnaTeks = totalBayar > 0 ? "text-success" : "text-danger";
+                tabelHtml += `
+                    <tr>
+                        <td>${nama}</td>
+                        <td class="text-end fw-bold ${warnaTeks}">Rp ${totalBayar.toLocaleString('id-ID')}</td>
+                    </tr>`;
+            });
+            document.getElementById('tabel-status').innerHTML = tabelHtml;
+        }
+
+        async function simpanKas() {
+            const pembayar = document.getElementById('kas-pembayar').value;
+            const ket = document.getElementById('kas-ket').value;
+            const nominal = document.getElementById('kas-nom').value;
+            const tipe = document.getElementById('kas-tipe').value;
+            
+            const periodeSaatIni = new Date().getFullYear() + "-" + String(new Date().getMonth() + 1).padStart(2, '0');
+
+            if (!ket || !nominal) return alert("Isi keterangan & nominal!");
+            
+            const btn = document.getElementById('btn-kas');
+            btn.disabled = true; btn.innerText = "⏳";
+
+            await fetch(`${SCRIPT_URL}?sheet=Kas`, {
+                method: 'POST', mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pembayar, ket, nominal, tipe, periode: periodeSaatIni })
+            });
+
+            document.getElementById('kas-ket').value = ''; document.getElementById('kas-nom').value = '';
+            setTimeout(() => { btn.disabled = false; btn.innerText = "Simpan Transaksi"; fetchKasData(); }, 1500);
+        }
+
+        // --- FETCH JADWAL ---
+        async function loadJadwal() {
+            try {
+                const res = await fetch(`${SCRIPT_URL}?sheet=Jadwal`);
+                const data = await res.json();
+                let html = '';
+                data.reverse().forEach(item => {
+                    html += `
+                        <div class="p-2 mb-2 border rounded bg-light small">
+                            <div class="fw-bold">${item.tugas}</div>
+                            <div class="text-muted">👤 ${item.pic} | 📅 ${item.tgl}</div>
+                        </div>`;
+                });
+                document.getElementById('list-jadwal').innerHTML = html || '<div class="loading">Belum ada jadwal</div>';
+            } catch(e) {}
+        }
+
+        async function tambahJadwal() {
+            const tugas = document.getElementById('jadwal-tugas').value;
+            const pic = document.getElementById('jadwal-pic').value;
+            const tgl = document.getElementById('jadwal-tgl').value;
+            
+            if(!tugas || !pic || !tgl) return alert("Lengkapi data jadwal!");
+            
+            const btn = document.getElementById('btn-jadwal');
+            btn.disabled = true; btn.innerText = "⏳";
+
+            await fetch(`${SCRIPT_URL}?sheet=Jadwal`, {
+                method: 'POST', mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tugas, pic, tgl })
+            });
+
+            document.getElementById('jadwal-tugas').value = ''; document.getElementById('jadwal-pic').value = ''; document.getElementById('jadwal-tgl').value = '';
+            setTimeout(() => { btn.disabled = false; btn.innerText = "Tambah Jadwal"; loadJadwal(); }, 1500);
+        }
+
+        // --- FETCH CHAT ---
+        async function loadChat() {
+            try {
+                const res = await fetch(`${SCRIPT_URL}?sheet=Chat`);
+                const data = await res.json();
+                const list = document.getElementById('list-chat');
+                let html = '';
+                data.forEach(item => {
+                    html += `<div class="chat-bubble chat-me">${item.pesan}</div>`;
+                });
+                list.innerHTML = html || '<div class="loading">Belum ada chat</div>';
+                list.scrollTop = list.scrollHeight;
+            } catch(e) {}
+        }
+
+        async function kirimPesan() {
+            const pesan = document.getElementById('chat-input').value;
+            if (!pesan) return;
+            
+            const btn = document.getElementById('btn-chat');
+            btn.disabled = true; btn.innerText = "⏳";
+
+            await fetch(`${SCRIPT_URL}?sheet=Chat`, {
+                method: 'POST', mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pesan, tipe: 'me' })
+            });
+
+            document.getElementById('chat-input').value = '';
+            setTimeout(() => { btn.disabled = false; btn.innerText = "Kirim"; loadChat(); }, 1500);
+        }
+
+        // --- INISIALISASI ---
+        window.onload = () => { 
+            fetchKasData(); 
+            loadJadwal(); 
+            loadChat(); 
+            
+            setInterval(() => { fetchKasData(); loadJadwal(); loadChat(); }, 10000);
+        };
+    </script>
+</body>
+</html>
