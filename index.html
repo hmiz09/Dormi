@@ -1,166 +1,137 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal Asrama Pro</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        
-        /* Modifikasi Tampilan Tab agar mirip aplikasi HP */
-        .nav-pills { background: #ffffff; padding: 10px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .nav-pills .nav-link { color: #6c757d; font-weight: bold; border-radius: 8px; padding: 10px 15px; }
-        .nav-pills .nav-link.active { background-color: #0d6efd; color: white; }
-        
-        .card { border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; }
-        .scroll-area { height: 400px; overflow-y: auto; background-color: #ffffff; padding: 15px; }
         .scroll-area::-webkit-scrollbar { width: 5px; }
-        .scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
+        .scroll-area::-webkit-scrollbar-track { background: transparent; }
+        .scroll-area::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
         
-        /* Desain Chat */
-        .chat-container { display: flex; flex-direction: column; gap: 10px; }
-        .chat-bubble { max-width: 80%; padding: 10px 15px; border-radius: 15px; font-size: 0.9rem; position: relative; }
-        .chat-sender-name { font-size: 0.7rem; font-weight: bold; margin-bottom: 3px; color: #666; }
-        .chat-me { background-color: #d1e7dd; color: #0f5132; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .chat-other { background-color: #f8f9fa; border: 1px solid #e9ecef; color: #333; align-self: flex-start; border-bottom-left-radius: 2px; }
-        
-        .loading { text-align: center; color: #6c757d; font-style: italic; margin-top: 20px; font-size: 0.9rem; }
-        .member-badge { font-size: 0.7rem; padding: 3px 8px; border-radius: 10px; background: #e2e8f0; color: #333; }
-        .btn-aksi { font-size: 0.65rem; padding: 2px 8px; border-radius: 5px; }
-        .dropdown-menu.checklist-area { max-height: 200px; overflow-y: auto; font-size: 0.85rem; }
+        /* Memberikan jarak saat meluncur ke bagian bawah agar tidak tertutup header biru */
+        html { scroll-padding-top: 100px; }
     </style>
 </head>
-<body>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased">
 
-    <nav class="navbar navbar-dark bg-primary mb-4 shadow-sm">
-        <div class="container justify-content-center">
-            <span class="navbar-brand mb-0 h1 fw-bold">🏠 Asrama Kita</span>
+    <nav class="bg-blue-600 text-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
+            <h1 class="text-xl font-extrabold tracking-wide flex-shrink-0">🏠 Asrama Kita</h1>
+            
+            <div class="flex flex-wrap justify-center gap-2 md:gap-4 font-semibold text-sm">
+                <a href="#kolom-kas" class="px-4 py-2 bg-blue-700 hover:bg-blue-500 rounded-lg transition shadow-sm">💰 Kas</a>
+                <a href="#kolom-jadwal" class="px-4 py-2 bg-blue-700 hover:bg-blue-500 rounded-lg transition shadow-sm">📅 Jadwal</a>
+                <a href="#kolom-chat" class="px-4 py-2 bg-blue-700 hover:bg-blue-500 rounded-lg transition shadow-sm">💬 Obrolan</a>
+            </div>
         </div>
     </nav>
 
-    <div class="container mb-5" style="max-width: 800px;">
+    <div class="container mx-auto px-4 mb-10 mt-6 max-w-6xl">
         
-        <ul class="nav nav-pills nav-justified" id="pills-tab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="pills-kas-tab" data-bs-toggle="pill" data-bs-target="#pills-kas" type="button" role="tab">💰 Kas</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="pills-jadwal-tab" data-bs-toggle="pill" data-bs-target="#pills-jadwal" type="button" role="tab">📅 Jadwal</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="pills-chat-tab" data-bs-toggle="pill" data-bs-target="#pills-chat" type="button" role="tab">💬 Obrolan</button>
-            </li>
-        </ul>
-
-        <div class="tab-content" id="pills-tabContent">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
             
-            <div class="tab-pane fade show active" id="pills-kas" role="tabpanel">
-                <div class="card h-100">
-                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center py-3">
-                        <h6 class="mb-0 fw-bold">Daftar Transaksi Kas</h6>
-                        <button class="btn btn-light btn-sm text-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalRekap">📊 Buka Rekap</button>
+            <div id="kolom-kas" class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[700px]">
+                <div class="bg-emerald-500 text-white p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
+                    <h2 class="font-bold text-lg">💰 Buku Kas</h2>
+                    <button onclick="openModal('modal-rekap')" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-bold transition duration-200">📊 Rekap</button>
+                </div>
+                
+                <div class="bg-emerald-50 text-center py-3 border-b border-emerald-100 shrink-0">
+                    <span class="text-emerald-700 font-medium text-sm">Total Saldo: </span>
+                    <span class="text-emerald-700 font-extrabold text-lg">Rp <span id="saldo-angka">0</span></span>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4 space-y-3 scroll-area bg-slate-50/50" id="list-kas">
+                    <div class="text-center text-slate-400 italic text-sm mt-4">Memuat data kas...</div>
+                </div>
+
+                <div class="bg-slate-50 p-4 border-t border-slate-200 shrink-0 rounded-b-2xl">
+                    <input type="hidden" id="kas-id">
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Tanggal</label>
+                            <input type="date" class="w-full border border-slate-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400" id="kas-tgl">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Pembayar (Bisa >1)</label>
+                            <button onclick="openModal('modal-pilih-kas')" id="btn-teks-kas" class="w-full border border-slate-300 bg-white rounded-lg px-2 py-1.5 text-sm text-left flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                                <span class="truncate text-slate-500">Pilih Nama</span><span class="text-slate-400 text-[10px]">▼</span>
+                            </button>
+                        </div>
                     </div>
                     
-                    <div class="bg-success bg-opacity-10 text-center py-2 border-bottom">
-                        <span class="text-success fw-bold">Total Saldo: Rp <span id="saldo-angka" class="fs-5">0</span></span>
+                    <div class="grid grid-cols-12 gap-2 mb-3">
+                        <div class="col-span-12">
+                            <input type="text" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400" id="kas-ket" placeholder="Keterangan (Cth: Beli Galon)">
+                        </div>
+                        <div class="col-span-7">
+                            <input type="text" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400" id="kas-nom" placeholder="Nominal (Rp)" oninput="formatRibuan(this)">
+                        </div>
+                        <div class="col-span-5">
+                            <select class="w-full border border-slate-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400" id="kas-tipe">
+                                <option value="masuk">Masuk (+)</option>
+                                <option value="keluar">Keluar (-)</option>
+                            </select>
+                        </div>
                     </div>
-
-                    <div class="scroll-area" id="list-kas">
-                        <div class="loading">Memuat data kas...</div>
-                    </div>
-
-                    <div class="card-footer bg-light p-3">
-                        <input type="hidden" id="kas-id">
-                        <div class="row g-2 mb-2">
-                            <div class="col-6">
-                                <label class="small text-muted mb-1">Tanggal</label>
-                                <input type="date" class="form-control form-control-sm" id="kas-tgl">
-                            </div>
-                            <div class="col-6">
-                                <label class="small text-muted mb-1">Pembayar (Bisa >1)</label>
-                                <div class="dropdown">
-                                    <button class="btn btn-outline-secondary btn-sm w-100 text-start d-flex justify-content-between align-items-center" type="button" id="btn-dropdown-pembayar" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                                        <span>Pilih Nama</span><span>▼</span>
-                                    </button>
-                                    <ul class="dropdown-menu w-100 p-2 checklist-area shadow" id="list-pembayar"></ul>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="row g-2 mb-3">
-                            <div class="col-12">
-                                <input type="text" class="form-control form-control-sm" id="kas-ket" placeholder="Keterangan (Cth: Beli Sabun)">
-                            </div>
-                            <div class="col-7">
-                                <input type="text" class="form-control form-control-sm" id="kas-nom" placeholder="Nominal (Rp)" oninput="formatRibuan(this)">
-                            </div>
-                            <div class="col-5">
-                                <select class="form-select form-select-sm" id="kas-tipe">
-                                    <option value="masuk">Masuk (+)</option>
-                                    <option value="keluar">Keluar (-)</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-secondary btn-sm fw-bold w-100 d-none" id="btn-batal" onclick="batalEdit()">Batal</button>
-                            <button class="btn btn-success btn-sm fw-bold w-100" id="btn-kas" onclick="simpanKas()">Simpan Transaksi</button>
-                        </div>
+                    
+                    <div class="flex gap-2">
+                        <button class="hidden w-1/3 bg-slate-500 hover:bg-slate-600 text-white font-bold py-2 rounded-lg text-sm transition" id="btn-batal" onclick="batalEdit()">Batal</button>
+                        <button class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-lg text-sm transition shadow-sm" id="btn-kas" onclick="simpanKas()">Simpan Transaksi</button>
                     </div>
                 </div>
             </div>
 
-            <div class="tab-pane fade" id="pills-jadwal" role="tabpanel">
-                <div class="card h-100">
-                    <div class="card-header bg-warning text-dark py-3">
-                        <h6 class="mb-0 fw-bold">Papan Tugas Asrama</h6>
+            <div id="kolom-jadwal" class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[700px]">
+                <div class="bg-amber-500 text-white p-4 shrink-0 rounded-t-2xl">
+                    <h2 class="font-bold text-lg text-center">📅 Papan Tugas</h2>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-4 space-y-3 scroll-area bg-slate-50/50" id="list-jadwal">
+                    <div class="text-center text-slate-400 italic text-sm mt-4">Memuat data jadwal...</div>
+                </div>
+
+                <div class="bg-slate-50 p-4 border-t border-slate-200 shrink-0 rounded-b-2xl">
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Tugas yang dikerjakan</label>
+                    <input type="text" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-amber-400" id="jadwal-tugas" placeholder="Cth: Sapu Kamar">
+                    
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Petugas (Bisa >1)</label>
+                            <button onclick="openModal('modal-pilih-jadwal')" id="btn-teks-jadwal" class="w-full border border-slate-300 bg-white rounded-lg px-2 py-1.5 text-sm text-left flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-amber-400">
+                                <span class="truncate text-slate-500">Pilih Petugas</span><span class="text-slate-400 text-[10px]">▼</span>
+                            </button>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Tanggal</label>
+                            <input type="date" class="w-full border border-slate-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" id="jadwal-tgl">
+                        </div>
                     </div>
                     
-                    <div class="scroll-area" id="list-jadwal">
-                        <div class="loading">Memuat data jadwal...</div>
-                    </div>
-
-                    <div class="card-footer bg-light p-3">
-                        <label class="small text-muted mb-1">Tugas yang harus dikerjakan</label>
-                        <input type="text" class="form-control form-control-sm mb-2" id="jadwal-tugas" placeholder="Cth: Bersihkan Kamar Mandi">
-                        
-                        <div class="row g-2 mb-3">
-                            <div class="col-6">
-                                <label class="small text-muted mb-1">Nama Petugas</label>
-                                <select class="form-select form-select-sm" id="jadwal-pic"></select>
-                            </div>
-                            <div class="col-6">
-                                <label class="small text-muted mb-1">Tanggal</label>
-                                <input type="date" class="form-control form-control-sm" id="jadwal-tgl">
-                            </div>
-                        </div>
-                        
-                        <button class="btn btn-warning btn-sm w-100 fw-bold text-dark" id="btn-jadwal" onclick="tambahJadwal()">Tambah ke Jadwal</button>
-                    </div>
+                    <button class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 rounded-lg text-sm transition shadow-sm" id="btn-jadwal" onclick="tambahJadwal()">Tambah ke Jadwal</button>
                 </div>
             </div>
 
-            <div class="tab-pane fade" id="pills-chat" role="tabpanel">
-                <div class="card h-100">
-                    <div class="card-header bg-info text-white py-3">
-                        <h6 class="mb-0 fw-bold">Ruang Komunikasi</h6>
-                    </div>
-                    
-                    <div class="scroll-area chat-container" id="list-chat">
-                        <div class="loading">Memuat data chat...</div>
+            <div id="kolom-chat" class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[700px]">
+                <div class="bg-sky-500 text-white p-4 shrink-0 rounded-t-2xl">
+                    <h2 class="font-bold text-lg text-center">💬 Ruang Obrolan</h2>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-3 scroll-area bg-slate-50/50" id="list-chat">
+                    <div class="text-center text-slate-400 italic text-sm mt-4">Memuat data chat...</div>
+                </div>
+
+                <div class="bg-slate-50 p-4 border-t border-slate-200 shrink-0 rounded-b-2xl">
+                    <div class="mb-3">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Kirim Sebagai (Ketik Bebas):</label>
+                        <input type="text" class="w-full border border-sky-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 bg-sky-50 text-sky-800 font-bold" id="chat-nama" placeholder="Contoh: Haris, Ketua, Tamu..." oninput="simpanNamaChat()">
                     </div>
 
-                    <div class="card-footer bg-light p-3">
-                        <div class="mb-2">
-                            <label class="small text-muted mb-1">Kirim Sebagai:</label>
-                            <select class="form-select form-select-sm" id="chat-nama" onchange="simpanNamaChat()"></select>
-                        </div>
-
-                        <div class="input-group">
-                            <input type="text" class="form-control form-control-sm" id="chat-input" placeholder="Tulis pesan..." onkeypress="if(event.key==='Enter') kirimPesan()">
-                            <button class="btn btn-info btn-sm text-white fw-bold" id="btn-chat" onclick="kirimPesan()">Kirim</button>
-                        </div>
+                    <div class="flex gap-2">
+                        <input type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400" id="chat-input" placeholder="Tulis pesan..." onkeypress="if(event.key==='Enter') kirimPesan()">
+                        <button class="bg-sky-500 hover:bg-sky-600 text-white font-bold px-4 py-2 rounded-lg text-sm transition shadow-sm shrink-0" id="btn-chat" onclick="kirimPesan()">Kirim</button>
                     </div>
                 </div>
             </div>
@@ -168,33 +139,55 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modalRekap" tabindex="-1" aria-labelledby="modalRekapLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" id="modalRekapLabel">📊 Rekap Iuran Anggota</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div id="modal-rekap" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
+            <div class="bg-emerald-500 text-white p-4 flex justify-between items-center rounded-t-2xl shrink-0">
+                <h3 class="font-bold text-lg">📊 Rekap Iuran Anggota</h3>
+                <button onclick="closeModal('modal-rekap')" class="text-white hover:text-emerald-100 text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-4 flex-1 overflow-y-auto scroll-area">
+                <div class="mb-4 flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <label class="font-bold text-sm text-slate-600 whitespace-nowrap">Pilih Periode:</label>
+                    <input type="month" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400" id="filter-bulan" onchange="loadKas()">
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3 d-flex align-items-center gap-2 bg-light p-2 rounded border">
-                        <label class="fw-bold small mb-0 w-100">Pilih Periode:</label>
-                        <input type="month" class="form-control form-control-sm" id="filter-bulan" onchange="loadKas()">
-                    </div>
-                    <table class="table table-sm table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Nama Anggota</th>
-                                <th class="text-end">Status Bulan Ini</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabel-status"></tbody>
-                    </table>
-                </div>
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-100 rounded-t-lg">
+                        <tr>
+                            <th class="px-4 py-3 rounded-tl-lg">Nama Anggota</th>
+                            <th class="px-4 py-3 text-right rounded-tr-lg">Status Bulan Ini</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-status" class="divide-y divide-slate-100"></tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div id="modal-pilih-kas" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col max-h-[80vh]">
+            <div class="bg-emerald-500 text-white p-3 flex justify-between items-center rounded-t-2xl shrink-0">
+                <h3 class="font-bold text-sm">Pilih Pembayar Kas</h3>
+                <button onclick="closeModal('modal-pilih-kas')" class="text-white hover:text-emerald-100 text-xl leading-none">&times;</button>
+            </div>
+            <div class="p-0 flex-1 overflow-y-auto scroll-area" id="list-pembayar-kas"></div>
+            <div class="p-3 bg-slate-50 border-t border-slate-200 shrink-0 rounded-b-2xl">
+                <button onclick="closeModal('modal-pilih-kas')" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-lg text-sm">Selesai Memilih</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-pilih-jadwal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col max-h-[80vh]">
+            <div class="bg-amber-500 text-white p-3 flex justify-between items-center rounded-t-2xl shrink-0">
+                <h3 class="font-bold text-sm">Pilih Petugas Jadwal</h3>
+                <button onclick="closeModal('modal-pilih-jadwal')" class="text-white hover:text-amber-100 text-xl leading-none">&times;</button>
+            </div>
+            <div class="p-0 flex-1 overflow-y-auto scroll-area" id="list-petugas-jadwal"></div>
+            <div class="p-3 bg-slate-50 border-t border-slate-200 shrink-0 rounded-b-2xl">
+                <button onclick="closeModal('modal-pilih-jadwal')" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 rounded-lg text-sm">Selesai Memilih</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // =====================================================================
@@ -209,53 +202,80 @@
         const strTanggalHariIni = dateNow.getFullYear() + "-" + String(dateNow.getMonth() + 1).padStart(2, '0') + "-" + String(dateNow.getDate()).padStart(2, '0');
         document.getElementById('kas-tgl').value = strTanggalHariIni;
         document.getElementById('jadwal-tgl').value = strTanggalHariIni;
-        
         const currentMonthString = dateNow.getFullYear() + "-" + String(dateNow.getMonth() + 1).padStart(2, '0');
         document.getElementById('filter-bulan').value = currentMonthString;
 
-        // FUNGSI ISI NAMA OTOMATIS KE SEMUA MENU DROPDOWN
+        // FUNGSI BUKA TUTUP MODAL TAILWIND
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        // FUNGSI MENGISI SEMUA CHECKLIST NAMA KE DALAM MODAL
         function siapkanMenuNama() {
-            // Untuk Checkbox di Kas
-            const list = document.getElementById('list-pembayar');
-            let htmlKas = `<li><div class="form-check"><input class="form-check-input check-nama" type="checkbox" value="Umum" id="chk-Umum" onchange="updateDropdownText()"><label class="form-check-label w-100" for="chk-Umum">Umum / Lainnya</label></div></li><li><hr class="dropdown-divider"></li>`;
+            const listKas = document.getElementById('list-pembayar-kas');
+            const listJadwal = document.getElementById('list-petugas-jadwal');
             
-            // Untuk Select di Jadwal dan Chat
-            let htmlSelect = `<option value="">-- Pilih Nama --</option>`;
+            let htmlKas = `
+                <label class="flex items-center space-x-3 p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer">
+                    <input type="checkbox" class="check-nama-kas h-4 w-4 text-emerald-500 rounded" value="Umum" onchange="updateTeksTombolKas()">
+                    <span class="text-sm font-medium text-slate-700">Umum / Lainnya</span>
+                </label>`;
+            let htmlJadwal = '';
 
             daftarAnggota.forEach(nama => {
-                htmlKas += `<li><div class="form-check"><input class="form-check-input check-nama" type="checkbox" value="${nama}" id="chk-${nama}" onchange="updateDropdownText()"><label class="form-check-label w-100" for="chk-${nama}">${nama}</label></div></li>`;
-                htmlSelect += `<option value="${nama}">${nama}</option>`;
+                htmlKas += `
+                <label class="flex items-center space-x-3 p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer">
+                    <input type="checkbox" class="check-nama-kas h-4 w-4 text-emerald-500 rounded" value="${nama}" id="chk-kas-${nama}" onchange="updateTeksTombolKas()">
+                    <span class="text-sm font-medium text-slate-700">${nama}</span>
+                </label>`;
+                htmlJadwal += `
+                <label class="flex items-center space-x-3 p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer">
+                    <input type="checkbox" class="check-nama-jadwal h-4 w-4 text-amber-500 rounded" value="${nama}" id="chk-jadwal-${nama}" onchange="updateTeksTombolJadwal()">
+                    <span class="text-sm font-medium text-slate-700">${nama}</span>
+                </label>`;
             });
 
-            list.innerHTML = htmlKas;
-            document.getElementById('jadwal-pic').innerHTML = htmlSelect;
-            document.getElementById('chat-nama').innerHTML = htmlSelect;
+            listKas.innerHTML = htmlKas;
+            listJadwal.innerHTML = htmlJadwal;
 
-            // Ingat Nama Chat Terakhir
+            // Memuat Nama Pengirim Chat Terakhir
             const namaTersimpan = localStorage.getItem('asrama_chat_name');
             if(namaTersimpan) { document.getElementById('chat-nama').value = namaTersimpan; }
         }
 
-        // Simpan Nama Chat ke Memori HP/Laptop
-        function simpanNamaChat() {
-            const namaDipilih = document.getElementById('chat-nama').value;
-            localStorage.setItem('asrama_chat_name', namaDipilih);
+        // --- MANAJEMEN TEKS TOMBOL KAS & JADWAL ---
+        function updateTeksTombolKas() {
+            const checked = document.querySelectorAll('.check-nama-kas:checked');
+            const btnTeks = document.getElementById('btn-teks-kas');
+            if(checked.length === 0) btnTeks.innerHTML = '<span class="truncate text-slate-500">Pilih Nama</span><span class="text-slate-400 text-[10px]">▼</span>';
+            else if(checked.length === 1) btnTeks.innerHTML = `<span class="font-bold text-emerald-600 truncate">${checked[0].value}</span><span class="text-slate-400 text-[10px]">▼</span>`;
+            else btnTeks.innerHTML = `<span class="font-bold text-emerald-600">${checked.length} Terpilih</span><span class="text-slate-400 text-[10px]">▼</span>`;
         }
+        function getNamaKas() { return Array.from(document.querySelectorAll('.check-nama-kas:checked')).map(cb => cb.value); }
+        function resetCheckboxKas() { document.querySelectorAll('.check-nama-kas').forEach(cb => cb.checked = false); updateTeksTombolKas(); }
 
-        function updateDropdownText() {
-            const checked = document.querySelectorAll('.check-nama:checked');
-            const btn = document.getElementById('btn-dropdown-pembayar');
-            if(checked.length === 0) btn.innerHTML = '<span>Pilih Nama Pembayar</span><span style="font-size: 0.7rem;">▼</span>';
-            else if(checked.length === 1) btn.innerHTML = `<span class="fw-bold text-primary">${checked[0].value}</span><span style="font-size: 0.7rem;">▼</span>`;
-            else btn.innerHTML = `<span class="fw-bold text-primary">${checked.length} Orang Terpilih</span><span style="font-size: 0.7rem;">▼</span>`;
+        function updateTeksTombolJadwal() {
+            const checked = document.querySelectorAll('.check-nama-jadwal:checked');
+            const btnTeks = document.getElementById('btn-teks-jadwal');
+            if(checked.length === 0) btnTeks.innerHTML = '<span class="truncate text-slate-500">Pilih Petugas</span><span class="text-slate-400 text-[10px]">▼</span>';
+            else if(checked.length === 1) btnTeks.innerHTML = `<span class="font-bold text-amber-600 truncate">${checked[0].value}</span><span class="text-slate-400 text-[10px]">▼</span>`;
+            else btnTeks.innerHTML = `<span class="font-bold text-amber-600">${checked.length} Terpilih</span><span class="text-slate-400 text-[10px]">▼</span>`;
         }
-
-        function getNamaTerpilih() { return Array.from(document.querySelectorAll('.check-nama:checked')).map(cb => cb.value); }
-        function resetCheckboxNama() { document.querySelectorAll('.check-nama').forEach(cb => cb.checked = false); updateDropdownText(); }
+        function getNamaJadwal() { return Array.from(document.querySelectorAll('.check-nama-jadwal:checked')).map(cb => cb.value); }
+        function resetCheckboxJadwal() { document.querySelectorAll('.check-nama-jadwal').forEach(cb => cb.checked = false); updateTeksTombolJadwal(); }
 
         function formatRibuan(input) {
             let angka = input.value.replace(/[^0-9]/g, "");
             input.value = angka.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        // Pelindung Format Waktu Google Sheets yang Aneh
+        function getYYYYMM(val) {
+            if(!val) return "";
+            if(String(val).includes('T')) {
+                const d = new Date(val);
+                return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0');
+            }
+            return String(val);
         }
 
         // ================= KAS =================
@@ -264,7 +284,9 @@
                 const res = await fetch(`${SCRIPT_URL}?sheet=Kas`);
                 dataKasGlobal = await res.json();
                 loadKas(); 
-            } catch(e) { document.getElementById('list-kas').innerHTML = '<div class="text-danger small text-center">Gagal memuat kas.</div>'; }
+            } catch(e) { 
+                document.getElementById('list-kas').innerHTML = '<div class="text-red-500 text-sm text-center mt-4">Gagal memuat kas. Pastikan URL Google Script sudah benar.</div>'; 
+            }
         }
 
         function loadKas() {
@@ -278,13 +300,8 @@
                 const nom = Number(String(item.nominal).replace(/\./g, ""));
                 totalSaldo += isMasuk ? nom : -nom;
 
-                let periodeBersih = item.periode;
-                if (periodeBersih && String(periodeBersih).includes('T')) {
-                    const d = new Date(periodeBersih);
-                    periodeBersih = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0');
-                }
-
-                const periodeCocok = !periodeBersih || String(periodeBersih).startsWith(bulanDipilih);
+                let periodeBersih = getYYYYMM(item.periode);
+                const periodeCocok = !periodeBersih || periodeBersih.startsWith(bulanDipilih);
                 if (isMasuk && rekap.hasOwnProperty(item.pembayar) && periodeCocok) { rekap[item.pembayar] += nom; }
 
                 let tglRapi = item.tanggal;
@@ -293,30 +310,39 @@
                     tglRapi = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
                 }
 
+                const colorText = isMasuk ? 'text-emerald-600' : 'text-red-500';
+                
                 logHtml += `
-                    <div class="p-3 mb-2 border rounded bg-white shadow-sm d-flex justify-content-between align-items-center">
+                    <div class="p-3 bg-white border border-slate-200 rounded-xl shadow-sm flex justify-between items-center hover:shadow-md transition">
                         <div>
-                            <span class="member-badge">${item.pembayar}</span>
-                            <div class="fw-bold mt-1 text-dark" style="font-size: 0.9rem;">${item.ket}</div>
-                            <div style="font-size: 0.65rem; color: #888;">📅 ${tglRapi || 'N/A'}</div>
+                            <span class="inline-block bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded-md font-medium mb-1">${item.pembayar}</span>
+                            <div class="font-bold text-slate-800 text-sm leading-tight">${item.ket}</div>
+                            <div class="text-[10px] text-slate-400 mt-1">📅 ${tglRapi || 'N/A'}</div>
                         </div>
-                        <div class="text-end">
-                            <div class="${isMasuk ? 'text-success' : 'text-danger'} fw-bold mb-2" style="font-size: 0.95rem;">
+                        <div class="text-right flex flex-col items-end">
+                            <div class="${colorText} font-bold text-sm mb-2">
                                 ${isMasuk ? '+' : '-'} Rp ${nom.toLocaleString('id-ID')}
                             </div>
-                            <button class="btn btn-outline-secondary btn-aksi" onclick="siapkanEdit('${item.id}')">✏️ Edit</button>
-                            <button class="btn btn-outline-danger btn-aksi" onclick="hapusKas('${item.id}')">🗑️</button>
+                            <div class="flex gap-1">
+                                <button class="text-[10px] px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded transition" onclick="siapkanEdit('${item.id}')">✏️ Edit</button>
+                                <button class="text-[10px] px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded transition" onclick="hapusKas('${item.id}')">🗑️</button>
+                            </div>
                         </div>
                     </div>`;
             });
-            document.getElementById('list-kas').innerHTML = logHtml || '<div class="loading">Belum ada transaksi</div>';
+            
+            document.getElementById('list-kas').innerHTML = logHtml || '<div class="text-center text-slate-400 italic text-sm mt-4">Belum ada transaksi</div>';
             document.getElementById('saldo-angka').innerText = totalSaldo.toLocaleString('id-ID');
 
             let tabelHtml = '';
             daftarAnggota.forEach(nama => {
                 const totalBayar = rekap[nama];
-                const warnaTeks = totalBayar > 0 ? "text-success" : "text-danger";
-                tabelHtml += `<tr><td>${nama}</td><td class="text-end fw-bold ${warnaTeks}">Rp ${totalBayar.toLocaleString('id-ID')}</td></tr>`;
+                const colorTeks = totalBayar > 0 ? "text-emerald-600" : "text-red-500";
+                tabelHtml += `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+                        <td class="px-4 py-2 text-slate-700 font-medium">${nama}</td>
+                        <td class="px-4 py-2 text-right font-bold ${colorTeks}">Rp ${totalBayar.toLocaleString('id-ID')}</td>
+                    </tr>`;
             });
             document.getElementById('tabel-status').innerHTML = tabelHtml;
         }
@@ -326,10 +352,10 @@
             if(!item) return;
 
             document.getElementById('kas-id').value = item.id;
-            resetCheckboxNama();
-            const chk = document.getElementById(`chk-${item.pembayar}`);
+            resetCheckboxKas();
+            const chk = document.getElementById(`chk-kas-${item.pembayar}`);
             if(chk) chk.checked = true;
-            updateDropdownText();
+            updateTeksTombolKas();
 
             document.getElementById('kas-ket').value = item.ket;
             document.getElementById('kas-nom').value = Number(String(item.nominal).replace(/\./g, "")).toLocaleString('id-ID').replace(/,/g, ".");
@@ -340,28 +366,35 @@
                 document.getElementById('kas-tgl').value = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
             } else { document.getElementById('kas-tgl').value = item.tanggal; }
 
-            document.getElementById('btn-kas').innerText = "Update Transaksi";
-            document.getElementById('btn-kas').classList.replace('btn-success', 'btn-warning');
-            document.getElementById('btn-batal').classList.remove('d-none');
+            const btn = document.getElementById('btn-kas');
+            btn.innerText = "Update Transaksi";
+            btn.classList.remove('bg-emerald-500', 'hover:bg-emerald-600');
+            btn.classList.add('bg-amber-500', 'hover:bg-amber-600');
             
-            // Pindah fokus layar ke form
-            document.getElementById('kas-tgl').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('btn-batal').classList.remove('hidden');
+            document.getElementById('btn-batal').classList.add('block');
+            document.getElementById('kolom-kas').scrollIntoView({ behavior: 'smooth' });
         }
 
         function batalEdit() {
             document.getElementById('kas-id').value = '';
-            resetCheckboxNama();
+            resetCheckboxKas();
             document.getElementById('kas-ket').value = '';
             document.getElementById('kas-nom').value = '';
             document.getElementById('kas-tgl').value = strTanggalHariIni;
-            document.getElementById('btn-kas').innerText = "Simpan Transaksi";
-            document.getElementById('btn-kas').classList.replace('btn-warning', 'btn-success');
-            document.getElementById('btn-batal').classList.add('d-none');
+            
+            const btn = document.getElementById('btn-kas');
+            btn.innerText = "Simpan Transaksi";
+            btn.classList.remove('bg-amber-500', 'hover:bg-amber-600');
+            btn.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
+            
+            document.getElementById('btn-batal').classList.remove('block');
+            document.getElementById('btn-batal').classList.add('hidden');
         }
 
         async function hapusKas(id) {
             if(!confirm("Yakin ingin menghapus transaksi ini?")) return;
-            document.getElementById('list-kas').innerHTML = '<div class="loading">Menghapus...</div>';
+            document.getElementById('list-kas').innerHTML = '<div class="text-center text-slate-500 text-sm mt-4">Menghapus...</div>';
             await fetch(`${SCRIPT_URL}?sheet=Kas`, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'delete', id: id }) });
             setTimeout(fetchKasData, 1500);
         }
@@ -369,7 +402,7 @@
         async function simpanKas() {
             const idTersembunyi = document.getElementById('kas-id').value;
             const tanggalPilih = document.getElementById('kas-tgl').value;
-            const daftarPembayar = getNamaTerpilih();
+            const daftarPembayar = getNamaKas();
             const ket = document.getElementById('kas-ket').value;
             const nominalStr = document.getElementById('kas-nom').value.replace(/\./g, "");
             const nominal = Number(nominalStr);
@@ -405,7 +438,7 @@
                 const data = await res.json();
                 let html = '';
                 data.reverse().forEach(item => { 
-                    // Rapi-kan tanggal
+                    if(!item.tugas) return;
                     let tglJadwal = item.tgl;
                     if(tglJadwal && String(tglJadwal).includes('T')) {
                         const d = new Date(tglJadwal);
@@ -413,57 +446,78 @@
                     }
 
                     html += `
-                    <div class="p-3 mb-2 border rounded bg-white shadow-sm d-flex justify-content-between align-items-center">
+                    <div class="p-3 bg-white border border-slate-200 rounded-xl shadow-sm flex justify-between items-center hover:shadow-md transition mb-2">
                         <div>
-                            <div class="fw-bold text-dark" style="font-size: 0.95rem;">${item.tugas}</div>
-                            <div style="font-size: 0.75rem; color: #666; margin-top: 4px;">📅 ${tglJadwal}</div>
+                            <div class="font-bold text-slate-800 text-sm">${item.tugas}</div>
+                            <div class="text-[10px] text-slate-400 mt-1">📅 ${tglJadwal}</div>
                         </div>
-                        <div><span class="badge bg-warning text-dark px-3 py-2 border">${item.pic}</span></div>
+                        <div><span class="inline-block bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-md font-bold">${item.pic}</span></div>
                     </div>`; 
                 });
-                document.getElementById('list-jadwal').innerHTML = html || '<div class="loading">Belum ada jadwal</div>';
+                document.getElementById('list-jadwal').innerHTML = html || '<div class="text-center text-slate-400 italic text-sm mt-4">Belum ada jadwal</div>';
             } catch(e) {}
         }
 
         async function tambahJadwal() {
             const tugas = document.getElementById('jadwal-tugas').value;
-            const pic = document.getElementById('jadwal-pic').value;
             const tgl = document.getElementById('jadwal-tgl').value;
+            const daftarPetugas = getNamaJadwal();
             
-            if(!tugas || !pic || !tgl) return alert("Pilih Nama Petugas dan lengkapi jadwal!");
+            if(!tugas || !tgl || daftarPetugas.length === 0) return alert("Lengkapi Tugas, Tanggal, dan pilih minimal 1 Petugas!");
             
             const btn = document.getElementById('btn-jadwal');
-            btn.disabled = true; btn.innerText = "⏳";
+            btn.disabled = true; btn.innerText = "⏳ Menyimpan...";
             
-            await fetch(`${SCRIPT_URL}?sheet=Jadwal`, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'insert', tugas, pic, tgl }) });
+            const dataBatch = [];
+            for (const pic of daftarPetugas) {
+                dataBatch.push({ tugas: tugas, pic: pic, tgl: tgl });
+            }
+            
+            await fetch(`${SCRIPT_URL}?sheet=Jadwal`, { 
+                method: 'POST', mode: 'no-cors', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'insert_batch', data: dataBatch }) 
+            });
             
             document.getElementById('jadwal-tugas').value = ''; 
-            document.getElementById('jadwal-pic').value = ''; 
+            resetCheckboxJadwal();
+            
             setTimeout(() => { btn.disabled = false; btn.innerText = "Tambah ke Jadwal"; loadJadwal(); }, 1500);
         }
 
         // ================= OBROLAN =================
+        function simpanNamaChat() {
+            const namaDipilih = document.getElementById('chat-nama').value;
+            localStorage.setItem('asrama_chat_name', namaDipilih);
+            loadChat(); // Memuat ulang agar warna bubble menyesuaikan nama baru
+        }
+
         async function loadChat() {
             try {
                 const res = await fetch(`${SCRIPT_URL}?sheet=Chat`);
                 const data = await res.json();
                 let html = '';
-                
-                // Ambil nama saya dari Local Storage untuk mengatur warna bubble chat
                 const myName = localStorage.getItem('asrama_chat_name') || "";
 
                 data.forEach(item => { 
-                    const isMe = (item.tipe === myName);
-                    const bubbleStyle = isMe ? 'chat-me' : 'chat-other';
+                    if(!item.pesan) return;
+                    const isMe = (item.tipe === myName) && (myName !== "");
                     
-                    html += `
-                    <div class="chat-bubble ${bubbleStyle}">
-                        ${!isMe ? `<div class="chat-sender-name">${item.tipe}</div>` : ''}
-                        ${item.pesan}
-                    </div>`; 
+                    if (isMe) {
+                        html += `
+                        <div class="max-w-[85%] bg-sky-500 text-white p-3 rounded-2xl rounded-br-sm self-end shadow-sm text-sm">
+                            ${item.pesan}
+                        </div>`;
+                    } else {
+                        html += `
+                        <div class="max-w-[85%] bg-white border border-slate-200 text-slate-800 p-3 rounded-2xl rounded-bl-sm self-start shadow-sm text-sm">
+                            <div class="text-[10px] font-bold text-sky-600 mb-1">${item.tipe}</div>
+                            ${item.pesan}
+                        </div>`;
+                    }
                 });
                 const list = document.getElementById('list-chat');
-                list.innerHTML = html || '<div class="loading">Mulai obrolan...</div>';
+                list.innerHTML = html || '<div class="text-center text-slate-400 italic text-sm mt-4">Mulai obrolan...</div>';
                 list.scrollTop = list.scrollHeight;
             } catch(e) {}
         }
@@ -472,13 +526,12 @@
             const pesan = document.getElementById('chat-input').value;
             const pengirim = document.getElementById('chat-nama').value;
             
-            if(!pengirim) return alert("Silakan pilih 'Kirim Sebagai' (Nama Anda) terlebih dahulu!");
+            if(!pengirim) return alert("Silakan ketik 'Kirim Sebagai' (Nama Anda) terlebih dahulu!");
             if (!pesan) return;
 
             const btn = document.getElementById('btn-chat');
             btn.disabled = true;
 
-            // Kita mengirim nama pengirim di kolom 'tipe'
             await fetch(`${SCRIPT_URL}?sheet=Chat`, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'insert', pesan: pesan, tipe: pengirim }) });
             
             document.getElementById('chat-input').value = '';
@@ -491,7 +544,7 @@
             fetchKasData(); 
             loadJadwal(); 
             loadChat(); 
-            setInterval(() => { fetchKasData(); loadJadwal(); loadChat(); }, 5000); // Dipercepat jadi 5 detik
+            setInterval(() => { fetchKasData(); loadJadwal(); loadChat(); }, 6000); 
         };
     </script>
 </body>
