@@ -9,8 +9,6 @@
         .scroll-area::-webkit-scrollbar { width: 5px; }
         .scroll-area::-webkit-scrollbar-track { background: transparent; }
         .scroll-area::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
-        
-        /* Memberikan jarak saat meluncur ke bagian bawah agar tidak tertutup header biru */
         html { scroll-padding-top: 100px; }
     </style>
 </head>
@@ -29,7 +27,6 @@
     </nav>
 
     <div class="container mx-auto px-4 mb-10 mt-6 max-w-6xl">
-        
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
             
             <div id="kolom-kas" class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[700px]">
@@ -39,7 +36,7 @@
                 </div>
                 
                 <div class="bg-emerald-50 text-center py-3 border-b border-emerald-100 shrink-0">
-                    <span class="text-emerald-700 font-medium text-sm">Total Saldo: </span>
+                    <span class="text-emerald-700 font-medium text-sm">Total Saldo Semua: </span>
                     <span class="text-emerald-700 font-extrabold text-lg">Rp <span id="saldo-angka">0</span></span>
                 </div>
 
@@ -146,18 +143,32 @@
                 <button onclick="closeModal('modal-rekap')" class="text-white hover:text-emerald-100 text-2xl leading-none">&times;</button>
             </div>
             <div class="p-4 flex-1 overflow-y-auto scroll-area">
+                
                 <div class="mb-4 flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
                     <label class="font-bold text-sm text-slate-600 whitespace-nowrap">Pilih Periode:</label>
                     <input type="month" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400" id="filter-bulan" onchange="loadKas()">
                 </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-5">
+                    <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-center">
+                        <div class="text-[10px] text-emerald-600 font-bold uppercase tracking-wider mb-1">Masuk Bulan Ini</div>
+                        <div class="text-emerald-700 font-extrabold text-base md:text-lg truncate" id="rekap-masuk-bulan">Rp 0</div>
+                    </div>
+                    <div class="bg-red-50 border border-red-200 p-3 rounded-xl text-center">
+                        <div class="text-[10px] text-red-600 font-bold uppercase tracking-wider mb-1">Keluar Bulan Ini</div>
+                        <div class="text-red-700 font-extrabold text-base md:text-lg truncate" id="rekap-keluar-bulan">Rp 0</div>
+                    </div>
+                </div>
+                
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Rincian Iuran Anggota</div>
                 <table class="w-full text-sm text-left">
                     <thead class="text-xs text-slate-500 uppercase bg-slate-100 rounded-t-lg">
                         <tr>
                             <th class="px-4 py-3 rounded-tl-lg">Nama Anggota</th>
-                            <th class="px-4 py-3 text-right rounded-tr-lg">Status Bulan Ini</th>
+                            <th class="px-4 py-3 text-right rounded-tr-lg">Total Setor</th>
                         </tr>
                     </thead>
-                    <tbody id="tabel-status" class="divide-y divide-slate-100"></tbody>
+                    <tbody id="tabel-status" class="divide-y divide-slate-100 border-b border-slate-100"></tbody>
                 </table>
             </div>
         </div>
@@ -191,13 +202,12 @@
 
     <script>
         // =====================================================================
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzTtAVH_BwmtLYsBgJrdJKDeYKa3fuyK1D6-zhONnXB4EWQprQxjkv2NSgWINV2LDh/exec";
+        const SCRIPT_URL = "URL_GOOGLE_SCRIPT_ANDA_DISINI";
         // =====================================================================
 
         const daftarAnggota = ["Haris", "Hisyam", "Erza", "Krisna", "Wahyu", "Bryan", "Riza", "Tohom", "Chadifa", "Imam", "Nobrian", "Abidzar", "Baretha", "Yudha", "Lalu"];
         let dataKasGlobal = [];
 
-        // Atur Tanggal Default
         const dateNow = new Date();
         const strTanggalHariIni = dateNow.getFullYear() + "-" + String(dateNow.getMonth() + 1).padStart(2, '0') + "-" + String(dateNow.getDate()).padStart(2, '0');
         document.getElementById('kas-tgl').value = strTanggalHariIni;
@@ -205,44 +215,28 @@
         const currentMonthString = dateNow.getFullYear() + "-" + String(dateNow.getMonth() + 1).padStart(2, '0');
         document.getElementById('filter-bulan').value = currentMonthString;
 
-        // FUNGSI BUKA TUTUP MODAL TAILWIND
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-        // FUNGSI MENGISI SEMUA CHECKLIST NAMA KE DALAM MODAL
         function siapkanMenuNama() {
             const listKas = document.getElementById('list-pembayar-kas');
             const listJadwal = document.getElementById('list-petugas-jadwal');
             
-            let htmlKas = `
-                <label class="flex items-center space-x-3 p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer">
-                    <input type="checkbox" class="check-nama-kas h-4 w-4 text-emerald-500 rounded" value="Umum" onchange="updateTeksTombolKas()">
-                    <span class="text-sm font-medium text-slate-700">Umum / Lainnya</span>
-                </label>`;
+            let htmlKas = `<label class="flex items-center space-x-3 p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer"><input type="checkbox" class="check-nama-kas h-4 w-4 text-emerald-500 rounded" value="Umum" onchange="updateTeksTombolKas()"><span class="text-sm font-medium text-slate-700">Umum / Lainnya</span></label>`;
             let htmlJadwal = '';
 
             daftarAnggota.forEach(nama => {
-                htmlKas += `
-                <label class="flex items-center space-x-3 p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer">
-                    <input type="checkbox" class="check-nama-kas h-4 w-4 text-emerald-500 rounded" value="${nama}" id="chk-kas-${nama}" onchange="updateTeksTombolKas()">
-                    <span class="text-sm font-medium text-slate-700">${nama}</span>
-                </label>`;
-                htmlJadwal += `
-                <label class="flex items-center space-x-3 p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer">
-                    <input type="checkbox" class="check-nama-jadwal h-4 w-4 text-amber-500 rounded" value="${nama}" id="chk-jadwal-${nama}" onchange="updateTeksTombolJadwal()">
-                    <span class="text-sm font-medium text-slate-700">${nama}</span>
-                </label>`;
+                htmlKas += `<label class="flex items-center space-x-3 p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer"><input type="checkbox" class="check-nama-kas h-4 w-4 text-emerald-500 rounded" value="${nama}" id="chk-kas-${nama}" onchange="updateTeksTombolKas()"><span class="text-sm font-medium text-slate-700">${nama}</span></label>`;
+                htmlJadwal += `<label class="flex items-center space-x-3 p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer"><input type="checkbox" class="check-nama-jadwal h-4 w-4 text-amber-500 rounded" value="${nama}" id="chk-jadwal-${nama}" onchange="updateTeksTombolJadwal()"><span class="text-sm font-medium text-slate-700">${nama}</span></label>`;
             });
 
             listKas.innerHTML = htmlKas;
             listJadwal.innerHTML = htmlJadwal;
 
-            // Memuat Nama Pengirim Chat Terakhir
             const namaTersimpan = localStorage.getItem('asrama_chat_name');
             if(namaTersimpan) { document.getElementById('chat-nama').value = namaTersimpan; }
         }
 
-        // --- MANAJEMEN TEKS TOMBOL KAS & JADWAL ---
         function updateTeksTombolKas() {
             const checked = document.querySelectorAll('.check-nama-kas:checked');
             const btnTeks = document.getElementById('btn-teks-kas');
@@ -257,8 +251,8 @@
             const checked = document.querySelectorAll('.check-nama-jadwal:checked');
             const btnTeks = document.getElementById('btn-teks-jadwal');
             if(checked.length === 0) btnTeks.innerHTML = '<span class="truncate text-slate-500">Pilih Petugas</span><span class="text-slate-400 text-[10px]">▼</span>';
-            else if(checked.length === 1) btnTeks.innerHTML = `<span class="font-bold text-amber-600 truncate">${checked[0].value}</span><span class="text-slate-400 text-[10px]">▼</span>`;
-            else btnTeks.innerHTML = `<span class="font-bold text-amber-600">${checked.length} Terpilih</span><span class="text-slate-400 text-[10px]">▼</span>`;
+            else if(checked.length === 1) btnTeks.innerHTML = `<span class="font-bold text-amber-600 text-dark truncate">${checked[0].value}</span><span class="text-slate-400 text-[10px]">▼</span>`;
+            else btnTeks.innerHTML = `<span class="font-bold text-amber-600 text-dark">${checked.length} Terpilih</span><span class="text-slate-400 text-[10px]">▼</span>`;
         }
         function getNamaJadwal() { return Array.from(document.querySelectorAll('.check-nama-jadwal:checked')).map(cb => cb.value); }
         function resetCheckboxJadwal() { document.querySelectorAll('.check-nama-jadwal').forEach(cb => cb.checked = false); updateTeksTombolJadwal(); }
@@ -268,7 +262,6 @@
             input.value = angka.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
 
-        // Pelindung Format Waktu Google Sheets yang Aneh
         function getYYYYMM(val) {
             if(!val) return "";
             if(String(val).includes('T')) {
@@ -278,19 +271,24 @@
             return String(val);
         }
 
-        // ================= KAS =================
+        // ================= KAS & REKAP BULANAN =================
         async function fetchKasData() {
             try {
                 const res = await fetch(`${SCRIPT_URL}?sheet=Kas`);
                 dataKasGlobal = await res.json();
                 loadKas(); 
-            } catch(e) { 
-                document.getElementById('list-kas').innerHTML = '<div class="text-red-500 text-sm text-center mt-4">Gagal memuat kas. Pastikan URL Google Script sudah benar.</div>'; 
-            }
+            } catch(e) { document.getElementById('list-kas').innerHTML = '<div class="text-red-500 text-sm text-center mt-4">Gagal memuat kas. Cek URL Google Script.</div>'; }
         }
 
         function loadKas() {
-            let totalSaldo = 0; let logHtml = ''; let rekap = {};
+            let totalSaldo = 0; 
+            let logHtml = ''; 
+            let rekap = {};
+            
+            // Variabel baru untuk menampung Pemasukan & Pengeluaran Bulan yang dipilih
+            let totalMasukBulanIni = 0;
+            let totalKeluarBulanIni = 0;
+
             const bulanDipilih = document.getElementById('filter-bulan').value;
             daftarAnggota.forEach(nama => rekap[nama] = 0);
 
@@ -298,11 +296,22 @@
                 if(!item.id) return; 
                 const isMasuk = item.tipe === 'masuk';
                 const nom = Number(String(item.nominal).replace(/\./g, ""));
+                
+                // Saldo Utama menghitung SEMUA transaksi
                 totalSaldo += isMasuk ? nom : -nom;
 
                 let periodeBersih = getYYYYMM(item.periode);
                 const periodeCocok = !periodeBersih || periodeBersih.startsWith(bulanDipilih);
-                if (isMasuk && rekap.hasOwnProperty(item.pembayar) && periodeCocok) { rekap[item.pembayar] += nom; }
+                
+                // Logika Filter untuk Rekap Bulan Ini
+                if (periodeCocok) { 
+                    if (isMasuk) {
+                        totalMasukBulanIni += nom;
+                        if(rekap.hasOwnProperty(item.pembayar)) rekap[item.pembayar] += nom; 
+                    } else {
+                        totalKeluarBulanIni += nom;
+                    }
+                }
 
                 let tglRapi = item.tanggal;
                 if(tglRapi && String(tglRapi).includes('T')) {
@@ -331,13 +340,19 @@
                     </div>`;
             });
             
+            // Menampilkan di Kolom Kas Utama
             document.getElementById('list-kas').innerHTML = logHtml || '<div class="text-center text-slate-400 italic text-sm mt-4">Belum ada transaksi</div>';
             document.getElementById('saldo-angka').innerText = totalSaldo.toLocaleString('id-ID');
 
+            // Menampilkan Angka Ringkasan Bulanan di Pop-Up Modal
+            document.getElementById('rekap-masuk-bulan').innerText = 'Rp ' + totalMasukBulanIni.toLocaleString('id-ID');
+            document.getElementById('rekap-keluar-bulan').innerText = 'Rp ' + totalKeluarBulanIni.toLocaleString('id-ID');
+
+            // Menampilkan Tabel Rincian Anggota
             let tabelHtml = '';
             daftarAnggota.forEach(nama => {
                 const totalBayar = rekap[nama];
-                const colorTeks = totalBayar > 0 ? "text-emerald-600" : "text-red-500";
+                const colorTeks = totalBayar > 0 ? "text-emerald-600" : "text-slate-400 font-normal";
                 tabelHtml += `
                     <tr class="hover:bg-slate-50 transition border-b border-slate-50">
                         <td class="px-4 py-2 text-slate-700 font-medium">${nama}</td>
@@ -414,7 +429,7 @@
             if (idTersembunyi && daftarPembayar.length > 1) return alert("Mode Edit hanya boleh untuk 1 nama.");
 
             const btn = document.getElementById('btn-kas');
-            btn.disabled = true; btn.innerText = "⏳ Menyimpan kilat...";
+            btn.disabled = true; btn.innerText = "⏳ Menyimpan ...";
 
             if (idTersembunyi) {
                 await fetch(`${SCRIPT_URL}?sheet=Kas`, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'edit', id: idTersembunyi, pembayar: daftarPembayar[0], ket: ket, nominal: nominal, tipe: tipe, periode: periodeHitung, tanggal: tanggalPilih }) });
@@ -489,7 +504,7 @@
         function simpanNamaChat() {
             const namaDipilih = document.getElementById('chat-nama').value;
             localStorage.setItem('asrama_chat_name', namaDipilih);
-            loadChat(); // Memuat ulang agar warna bubble menyesuaikan nama baru
+            loadChat();
         }
 
         async function loadChat() {
@@ -538,12 +553,10 @@
             setTimeout(() => { btn.disabled = false; loadChat(); }, 1500);
         }
 
-        // --- INISIALISASI AWAL ---
+        // --- INIT ---
         window.onload = () => { 
             siapkanMenuNama();
-            fetchKasData(); 
-            loadJadwal(); 
-            loadChat(); 
+            fetchKasData(); loadJadwal(); loadChat(); 
             setInterval(() => { fetchKasData(); loadJadwal(); loadChat(); }, 6000); 
         };
     </script>
